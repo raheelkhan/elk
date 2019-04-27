@@ -1,0 +1,39 @@
+version: "3"
+services:
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
+        container_name: elasticsearch
+        ports:
+            - "9200:9200"
+        environment:
+            - discovery.type=single-node
+    logstash:
+        image: docker.elastic.co/logstash/logstash:7.0.0
+        container_name: logstash
+        volumes:
+            - ./infrastructure/logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+            - ./infrastructure/logstash/pipeline/:/usr/share/logstash/pipeline/
+            - data-volume:/usr/share/logstash/logs/
+        environment:
+            - path.config=null
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.0.0
+        container_name: kibana
+        ports:
+            - "5601:5601"
+    frontend:
+        build: "./infrastructure/frontend"
+        container_name: frontend
+        volumes:
+            - ./frontend/:/usr/share/nginx/html
+            - data-volume:/var/log/nginx/
+        ports:
+            - "8080:80"
+    orders:
+        build: "./infrastructure/orders"
+        container_name: orders
+        volumes:
+            - ./orders:/orders
+        tty: true
+volumes:
+    data-volume:
